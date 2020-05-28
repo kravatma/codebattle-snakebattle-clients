@@ -1,7 +1,7 @@
 from snakebattleclient.SnakeBattleClient import GameClient
 import random
 import logging
-import mysnake.mysnake as mysnake
+import mysnake
 
 from snakebattleclient.internals.SnakeAction import SnakeAction
 from snakebattleclient.internals.Board import Board
