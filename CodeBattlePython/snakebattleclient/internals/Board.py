@@ -19,28 +19,59 @@ class Board:
         _result = []
         for i in range(self._size * self._size):
             point = self.get_point_by_shift(i)
-            for type in element_types:
-                if self.has_element_at(point, type):
-                    return point
+            for eltype in element_types:
+                if self.has_element_at(point, eltype):
+                    return point._y, point._x
         return None
-
-    def get_my_head(self):
-        return self.find_first_element(Element('HEAD_HEAD'), Element('HEAD_DOWN'), Element('HEAD_UP'),
-                                       Element('HEAD_LEFT'), Element('HEAD_RIGHT'), Element('HEAD_EVIL'),
-                                       Element('HEAD_FLY'), Element('HEAD_SLEEP'))
 
     def _find_all(self, *element_types):
         """ Returns the list of points for the given element type."""
         _points = []
         for i in range(self._size * self._size):
             point = self.get_point_by_shift(i)
-            for type in element_types:
-                if self.has_element_at(point, type):
-                    _points.append(point)
+            for eltype in element_types:
+                if self.has_element_at(point, eltype):
+                    _points.append((point._y, point._x))
         return _points
 
+    def get_free_space(self):
+        return self._find_all(Element('NONE'))
+
+    def get_my_head(self):
+        return self.find_first_element(Element('HEAD_DOWN'), Element('HEAD_UP'),
+                                       Element('HEAD_LEFT'), Element('HEAD_RIGHT'), Element('HEAD_EVIL'),
+                                       Element('HEAD_FLY'), Element('HEAD_SLEEP'))
+
+    def get_my_body(self):
+        return self._find_all(Element('BODY_HORIZONTAL'), Element('BODY_VERTICAL'),
+                                       Element('BODY_LEFT_DOWN'),  Element('BODY_LEFT_UP'),
+                                       Element('BODY_RIGHT_DOWN'), Element('BODY_RIGHT_UP'))
+
+    def get_my_tail(self):
+        return self._find_all(Element('TAIL_END_DOWN'), Element('TAIL_END_LEFT'), Element('TAIL_END_UP'),
+                                       Element('TAIL_END_RIGHT'))
+
+    def get_enemy_head(self):
+        return self._find_all(Element('ENEMY_HEAD_DOWN'), Element('ENEMY_HEAD_LEFT'),
+                                       Element('ENEMY_HEAD_RIGHT'),
+                                       Element('ENEMY_HEAD_UP'), Element('ENEMY_HEAD_EVIL'),
+                                       Element('ENEMY_HEAD_FLY'), Element('ENEMY_HEAD_SLEEP'))
+
+    def get_enemy_body(self):
+        return self._find_all(Element('ENEMY_BODY_HORIZONTAL'), Element('ENEMY_BODY_VERTICAL'),
+                                       Element('ENEMY_BODY_LEFT_DOWN'), Element('ENEMY_BODY_LEFT_UP'),
+                                       Element('ENEMY_BODY_RIGHT_DOWN'), Element('ENEMY_BODY_RIGHT_UP'))
+
+    def get_enemy_tail(self):
+        return self._find_all(Element('ENEMY_TAIL_END_DOWN'), Element('ENEMY_TAIL_END_LEFT'),
+                                       Element('ENEMY_TAIL_END_UP'), Element('ENEMY_TAIL_END_RIGHT'))
+
     def get_walls(self):
-        return self._find_all(Element('WALL'))
+        walls = self._find_all(Element('WALL'))
+        start_points = self._find_all(Element('START_FLOOR'))
+        return walls+start_points
+
+
 
     def get_stones(self):
         return self._find_all(Element('STONE'))
