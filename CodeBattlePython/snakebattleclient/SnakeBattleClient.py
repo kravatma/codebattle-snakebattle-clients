@@ -7,10 +7,6 @@ from snakebattleclient.internals.SnakeAction import SnakeAction
 logger = logging.getLogger(__name__)
 
 
-def sample(ws):
-    pass
-
-
 class GameClient:
     def __init__(self, url):
         path = url.replace("http", "ws")

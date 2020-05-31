@@ -91,5 +91,10 @@ class Element:
                 self._char == otherElement._char)
 
 
+with open('search_helper.txt') as f:
+    SEARCH_HELPER = [ln.strip().split(',') for ln in f.readlines()]
+
+
+
 if __name__ == '__main__':
     raise RuntimeError("This module is not intended to be ran from CLI")

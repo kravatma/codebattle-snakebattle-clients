@@ -1,8 +1,13 @@
 from math import sqrt
-
-from snakebattleclient.internals.Element import Element
+from snakebattleclient.internals.Element import Element, SEARCH_HELPER
 from snakebattleclient.internals.Point import Point
 
+heads_elements = [Element('ENEMY_HEAD_DOWN'), Element('ENEMY_HEAD_LEFT'),
+                  Element('ENEMY_HEAD_RIGHT'), Element('ENEMY_HEAD_UP'),
+                  Element('ENEMY_HEAD_EVIL'),
+                  Element('HEAD_DOWN'), Element('HEAD_LEFT'),
+                  Element('HEAD_RIGHT'), Element('HEAD_UP'),
+                  Element('HEAD_EVIL')]
 
 class Board:
     """ Class describes the Board field for Bomberman game."""
@@ -37,39 +42,66 @@ class Board:
     def get_free_space(self):
         return self._find_all(Element('NONE'))
 
-    def get_my_head(self):
-        return self.find_first_element(Element('HEAD_DOWN'), Element('HEAD_UP'),
-                                       Element('HEAD_LEFT'), Element('HEAD_RIGHT'), Element('HEAD_EVIL'),
-                                       Element('HEAD_FLY'), Element('HEAD_SLEEP'))
-
-    def get_my_body(self):
-        return self._find_all(Element('BODY_HORIZONTAL'), Element('BODY_VERTICAL'),
-                                       Element('BODY_LEFT_DOWN'),  Element('BODY_LEFT_UP'),
-                                       Element('BODY_RIGHT_DOWN'), Element('BODY_RIGHT_UP'))
-
     def get_my_tail(self):
-        return self._find_all(Element('TAIL_END_DOWN'), Element('TAIL_END_LEFT'), Element('TAIL_END_UP'),
+        return self.find_first_element(Element('TAIL_END_DOWN'), Element('TAIL_END_LEFT'), Element('TAIL_END_UP'),
                                        Element('TAIL_END_RIGHT'))
 
-    def get_enemy_head(self):
-        return self._find_all(Element('ENEMY_HEAD_DOWN'), Element('ENEMY_HEAD_LEFT'),
-                                       Element('ENEMY_HEAD_RIGHT'),
-                                       Element('ENEMY_HEAD_UP'), Element('ENEMY_HEAD_EVIL'),
-                                       Element('ENEMY_HEAD_FLY'), Element('ENEMY_HEAD_SLEEP'))
-
-    def get_enemy_body(self):
-        return self._find_all(Element('ENEMY_BODY_HORIZONTAL'), Element('ENEMY_BODY_VERTICAL'),
-                                       Element('ENEMY_BODY_LEFT_DOWN'), Element('ENEMY_BODY_LEFT_UP'),
-                                       Element('ENEMY_BODY_RIGHT_DOWN'), Element('ENEMY_BODY_RIGHT_UP'))
-
-    def get_enemy_tail(self):
+    def get_enemies_tails(self):
         return self._find_all(Element('ENEMY_TAIL_END_DOWN'), Element('ENEMY_TAIL_END_LEFT'),
                                        Element('ENEMY_TAIL_END_UP'), Element('ENEMY_TAIL_END_RIGHT'))
+
+    def find_snake_by_tail(self, tail):
+        cur_y, cur_x = tail
+        cur_elem = self.get_element_at(Point(cur_x, cur_y))
+        snake_coords = [(cur_y, cur_x)]
+
+        while cur_elem not in heads_elements:
+            for crnt, direction, nxt in SEARCH_HELPER:
+                if direction == 'UP' and Element(crnt) == cur_elem and self.get_element_type_at(cur_x, cur_y - 1) == Element(nxt):
+                    if (cur_y - 1, cur_x) not in snake_coords:
+                        cur_x, cur_y = cur_x, cur_y - 1
+                        break
+                if direction == 'DOWN' and Element(crnt) == cur_elem and self.get_element_type_at(cur_x, cur_y + 1) == Element(nxt):
+                    if (cur_y + 1, cur_x) not in snake_coords:
+                        cur_x, cur_y = cur_x, cur_y + 1
+                        break
+                if direction == 'LEFT' and Element(crnt) == cur_elem and self.get_element_type_at(cur_x - 1, cur_y) == Element(nxt):
+                    if (cur_y, cur_x - 1) not in snake_coords:
+                        cur_x, cur_y = cur_x - 1, cur_y
+                        break
+                if direction == 'RIGHT' and Element(crnt) == cur_elem and self.get_element_type_at(cur_x + 1, cur_y) == Element(nxt):
+                    if (cur_y, cur_x + 1) not in snake_coords:
+                        cur_x, cur_y = cur_x + 1, cur_y
+                        break
+
+            cur_elem = self.get_element_at(Point(cur_x, cur_y))
+
+            snake_coords.append((cur_y, cur_x))
+
+        snake_coords.reverse()
+        evil = cur_elem in [Element('ENEMY_HEAD_EVIL'), Element('HEAD_EVIL')]
+        snake = {'coords': snake_coords, 'evil': evil}
+
+        return snake
+
+    def get_my_snake(self):
+        my_tail = self.get_my_tail()
+        my_snake = self.find_snake_by_tail(my_tail)
+        return my_snake
+
+
+    def get_enemies(self):
+        enemies_tails = self.get_enemies_tails()
+        enemies = []
+        for enemy_tail in enemies_tails:
+            enemies.append(self.find_snake_by_tail(enemy_tail))
+        return enemies
+
 
     def get_walls(self):
         walls = self._find_all(Element('WALL'))
         start_points = self._find_all(Element('START_FLOOR'))
-        return walls+start_points
+        return walls + start_points
 
 
 
@@ -111,6 +143,10 @@ class Board:
         """ Return an Element object at coordinates x,y."""
         return Element(self._string[self._xy2strpos(point.get_x(), point.get_y())])
 
+    def get_element_type_at(self, x, y):
+        """ Return an Element object at coordinates x,y."""
+        return self.get_element_at(Point(x, y))
+
     def has_element_at(self, point, element_object):
         if point.is_out_of_board(self._size):
             return False
@@ -147,4 +183,9 @@ class Board:
 
 
 if __name__ == '__main__':
-    raise RuntimeError("This module is not designed to be ran from CLI")
+    with open('testmap2.txt', encoding='utf-8') as f:
+        rows = ''.join(f.readlines())
+        brd = Board(rows)
+        #print(brd.get_enemies())
+        print('----------')
+        print(brd.get_my_snake())

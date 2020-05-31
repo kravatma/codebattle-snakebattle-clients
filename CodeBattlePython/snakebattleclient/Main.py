@@ -9,6 +9,9 @@ from snakebattleclient.internals.Board import Board
 logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s',
                     level=logging.INFO)
 
+with open('internals/enemy_search_helper.txt') as f:
+    enemy_search_list = [ln.strip().split(',') for ln in f.readlines()]
+
 def turn(gcb: Board):
     apples = gcb.get_apples()
     walls = gcb.get_walls()
@@ -40,11 +43,10 @@ def turn(gcb: Board):
     if my_head is None:
         return random.choice(list(SnakeAction))
 
-
     field = mysnake.Field(cells=cells, apples=apples, walls=walls, stones=stones, golds=golds)
     my_snake = mysnake.Snake(coords=[my_head]+my_body+my_tail)
-    enemy_coords = [enemy_heads] + enemy_bodies + enemy_tails
-    direction = my_snake.make_step(field=field, enemy_coords=enemy_coords)
+    enemies = gcb.get_enemies(enemy_search_list)
+    direction = my_snake.make_step(board=field, enemies=enemies)
 
     #return random.choice(list(SnakeAction))
     print(direction)
