@@ -24,7 +24,7 @@ class Snake:
     def length(self, snake):
         return len(snake['coords'])
 
-    def find_nearest_obj(self, snake, objects, check=True):
+    def find_nearest_obj(self, snake, objects, check=True, isyum=1):
         print('searching nearest obj')
         head_y, head_x = snake['coords'][0]
         wave_points = {(head_y, head_x): (0, None)}
@@ -51,7 +51,7 @@ class Snake:
 
                 if l >= evil_cap:
                     stones_and_walls = stones_and_walls.union(set(self.board.stones))
-                new_sub_front = {(y,x-1),(y,x+1),(y-1,x),(y+1,x)} - stones_and_walls - set(self.me['coords'][l:]) - set(wave_points.keys()) - set(enemies_coords)
+                new_sub_front = {(y,x-1),(y,x+1),(y-1,x),(y+1,x)} - stones_and_walls - set(self.me['coords'][l:]) - set(wave_points.keys()) - set(enemies_coords*isyum)
                 new_front = new_front.union(new_sub_front)
                 for c_point in new_sub_front:
                     if not wave_points.get(c_point):
@@ -84,26 +84,16 @@ class Snake:
         ways[len(n_pill)] = n_pill
 
         best_way = min(ways.keys())
-        print(ways)
 
         self.route = ways[best_way]
+        if self.me['evil'] is True:
+            snks = [c['coords'][0] for c in self.enemies]
+            fight_route = self.find_nearest_obj(self.me, snks, isyum=0)
+            if len(fight_route) < self.me['evil_capacity'] + 3:
+                self.route = fight_route
+                print('AIMED')
+
         print(self.route)
-
-        if self.evil_capacity == 0:
-            pass
-
-    def find_fight_target(self):
-        enemies_routes = []
-        for i, enemy in enumerate(self.enemies):
-            pags = self.board.pills + self.board.apples + self.board.golds
-            if enemy.evil:
-                snks = self.enemies[:i] + self.enemies[i+1:]
-                enemies_routes.append(self.find_nearest_obj(enemy, pags + snks))
-            else:
-                enemies_routes.append()
-
-
-
 
     def define_direction(self, head, step):
         step_y, step_x = step
