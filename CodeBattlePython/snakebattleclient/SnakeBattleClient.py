@@ -12,7 +12,6 @@ class GameClient:
         path = url.replace("http", "ws")
         path = path.replace("board/player/", "ws?user=")
         path = path.replace("?code=", "&code=")
-
         logger.info("connecting... {}".format(path))
         self.socket = websocket.WebSocketApp(path,
                                              on_message=lambda ws, msg: self.on_message(ws, msg),

@@ -91,7 +91,8 @@ class Element:
                 self._char == otherElement._char)
 
 
-with open('search_helper.txt') as f:
+with open('internals/search_helper.txt') as f:
+#with open('search_helper.txt') as f:
     SEARCH_HELPER = [ln.strip().split(',') for ln in f.readlines()]
 
 
